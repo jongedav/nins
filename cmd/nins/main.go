@@ -3,18 +3,21 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/jongedav/nins/internal/cli"
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	if len(os.Args) <= 1 {
 		fmt.Println("Invoke nins --help for help.")
 	} else {
-		switch os.Args[1] {
-		case "status":
-			fmt.Println("NINS Status.")
-		default:
-			fmt.Println("Unkown argument. Invoke nins --help for help.")
+		request, err := cli.ParseArgs(os.Args)
+		if err != nil {
+			fmt.Printf("Error: %s", err)
+		} else {
+			fmt.Println(request)
 		}
+
 	}
 
 }
