@@ -47,3 +47,23 @@ var CommandList = []*Command{
 		},
 	},
 }
+
+func findCommand(path []string) (*Command, int) {
+	currentList := CommandList
+	var current *Command
+	for i, segment := range path {
+		var next *Command
+		for _, cmd := range currentList {
+			if cmd.Command == segment {
+				next = cmd
+				break
+			}
+		}
+		if next == nil {
+			return current, i
+		}
+		current = next
+		currentList = next.Subcommands
+	}
+	return current, len(path)
+}
