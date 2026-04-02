@@ -46,7 +46,10 @@ func ParseArgs(args []string) (*model.Request, error) {
 					return request, err
 				}
 			}
+		default:
+
 		}
+
 	}
 	return request, nil
 }
@@ -67,4 +70,8 @@ func findGlobalFlagByShortName(name string) (*model.GlobalFlag, error) {
 		}
 	}
 	return nil, errors.New("unknown flag given.")
+}
+
+func isValidCommand(command string, previous_command string) (bool, error) {
+
 }
