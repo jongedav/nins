@@ -9,6 +9,7 @@ import (
 
 func ParseArgs(args []string) (*model.Request, error) {
 	request := new(model.Request)
+	var previous_command string = ""
 
 	for i := 1; i < len(args); i++ {
 
@@ -31,7 +32,7 @@ func ParseArgs(args []string) (*model.Request, error) {
 				if err := flag.Apply(request, ""); err != nil {
 					return request, err
 				}
-			}
+ 			}
 
 		case strings.HasPrefix(args[i], "-") && len(args[i]) > 1:
 			for _, arg := range args[i][1:] {
@@ -47,7 +48,11 @@ func ParseArgs(args []string) (*model.Request, error) {
 				}
 			}
 		default:
-
+			if isValidCommand(args[i], request.Path) {
+				request.Path.append(args[i])
+			} else {
+				return *request, errors.New("unknown command given.")
+			}
 		}
 
 	}
@@ -72,6 +77,7 @@ func findGlobalFlagByShortName(name string) (*model.GlobalFlag, error) {
 	return nil, errors.New("unknown flag given.")
 }
 
-func isValidCommand(command string, previous_command string) (bool, error) {
-
+func isValidCommand(command string, path []string) (bool) {
+	cmd, matched := findCommand(path)
+	return cmd != nil && matched == len(path)
 }
