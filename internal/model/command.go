@@ -1,9 +1,11 @@
+// Package model defines the models used in the app.
 package model
 
 type Command struct {
 	Command     string
 	Description string
 	Subcommands []*Command
+	Flags       []*Flag
 	Runnable    bool
 }
 
@@ -12,6 +14,18 @@ var CommandList = []*Command{
 		Command:     "status",
 		Description: "Show desktop capability status.",
 		Runnable:    true,
+		Flags: []*Flag{
+			{
+				"short",
+				"s",
+				"Show short status",
+				false,
+				func(r *Request, _ string) error {
+					r.Flags["short"] = ""
+					return nil
+				},
+			},
+		},
 	},
 	{
 		Command:     "doctor",
@@ -48,7 +62,7 @@ var CommandList = []*Command{
 	},
 }
 
-func findCommand(path []string) (*Command, int) {
+func FindCommand(path []string) (*Command, int) {
 	currentList := CommandList
 	var current *Command
 	for i, segment := range path {

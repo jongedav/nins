@@ -1,6 +1,6 @@
 package model
 
-type GlobalFlag struct {
+type Flag struct {
 	Name        string
 	ShortName   string
 	Description string
@@ -8,7 +8,7 @@ type GlobalFlag struct {
 	Apply       func(*Request, string) error
 }
 
-var GlobalFlagList = []*GlobalFlag{
+var GlobalFlagList = []*Flag{
 	{
 		Name:        "help",
 		ShortName:   "h",
