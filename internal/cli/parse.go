@@ -36,6 +36,7 @@ func ParseArgs(args []string) (*model.Request, error) {
 					}
 				}
 			}
+			// TODO: parse flags after commandSeend.
 
 		case strings.HasPrefix(args[i], "-") && len(args[i]) > 1:
 			if !commandSeen {
@@ -52,6 +53,8 @@ func ParseArgs(args []string) (*model.Request, error) {
 					}
 				}
 			}
+			// TODO: parse flags after commandSeend.
+
 		default:
 			if isValidCommand(args[i], request.Path) {
 				request.Path = append(request.Path, args[i])
