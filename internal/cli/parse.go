@@ -1,3 +1,4 @@
+// Package cli handles the user input.
 package cli
 
 import (
@@ -9,75 +10,81 @@ import (
 
 func ParseArgs(args []string) (*model.Request, error) {
 	request := new(model.Request)
-	var previous_command string = ""
+	commandSeen := false
 
 	for i := 1; i < len(args); i++ {
-
 		switch {
+
 		case strings.HasPrefix(args[i], "--"):
-			flag, err := findGlobalFlagByName(args[i][2:])
-			if err != nil {
-				return nil, err
-			}
-			if flag.NeedsValue {
-				if i+1 == len(args) {
-					return request, errors.New("too few values given for flag.")
-				}
-				if err := flag.Apply(request, args[i+1]); err != nil {
-					return request, err
-				}
-				i++
-
-			} else {
-				if err := flag.Apply(request, ""); err != nil {
-					return request, err
-				}
- 			}
-
-		case strings.HasPrefix(args[i], "-") && len(args[i]) > 1:
-			for _, arg := range args[i][1:] {
-				flag, err := findGlobalFlagByShortName(string(arg))
+			if !commandSeen {
+				flag, err := findGlobalFlagByName(args[i][2:])
 				if err != nil {
-					return request, err
+					return nil, err
 				}
 				if flag.NeedsValue {
-					return request, errors.New("short flag cannot take values.")
+					if i+1 == len(args) {
+						return request, errors.New("too few values given for flag")
+					}
+					if err := flag.Apply(request, args[i+1]); err != nil {
+						return request, err
+					}
+					i++
+
+				} else {
+					if err := flag.Apply(request, ""); err != nil {
+						return request, err
+					}
 				}
-				if err := flag.Apply(request, ""); err != nil {
-					return request, err
+			}
+
+		case strings.HasPrefix(args[i], "-") && len(args[i]) > 1:
+			if !commandSeen {
+				for _, arg := range args[i][1:] {
+					flag, err := findGlobalFlagByShortName(string(arg))
+					if err != nil {
+						return request, err
+					}
+					if flag.NeedsValue {
+						return request, errors.New("short flag cannot take values")
+					}
+					if err := flag.Apply(request, ""); err != nil {
+						return request, err
+					}
 				}
 			}
 		default:
 			if isValidCommand(args[i], request.Path) {
-				request.Path.append(args[i])
+				request.Path = append(request.Path, args[i])
+				commandSeen = true
+			} else if !commandSeen {
+				return request, errors.New("unknown command given")
 			} else {
-				return *request, errors.New("unknown command given.")
+				request.Args = append(request.Args, args[i])
 			}
 		}
-
 	}
 	return request, nil
 }
 
-func findGlobalFlagByName(name string) (*model.GlobalFlag, error) {
+func findGlobalFlagByName(name string) (*model.Flag, error) {
 	for _, flag := range model.GlobalFlagList {
 		if name == flag.Name {
 			return flag, nil
 		}
 	}
-	return nil, errors.New("unknown flag given.")
+	return nil, errors.New("unknown flag given")
 }
 
-func findGlobalFlagByShortName(name string) (*model.GlobalFlag, error) {
+func findGlobalFlagByShortName(name string) (*model.Flag, error) {
 	for _, flag := range model.GlobalFlagList {
 		if name == flag.ShortName {
 			return flag, nil
 		}
 	}
-	return nil, errors.New("unknown flag given.")
+	return nil, errors.New("unknown flag given")
 }
 
-func isValidCommand(command string, path []string) (bool) {
-	cmd, matched := findCommand(path)
-	return cmd != nil && matched == len(path)
+func isValidCommand(command string, path []string) bool {
+	cmd, matched := model.FindCommand(append(path, command))
+	return cmd != nil && matched == len(path)+1
 }
